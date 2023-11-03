@@ -1,0 +1,36 @@
+title: get scenarigo repository
+vars:
+  user: zoncoen
+  repo: scenarigo
+  accountname: xiaomai
+steps:
+  - title: 登录请求
+    protocol: http
+    request:
+      method: POST
+      url: 'http://test2rdfrontend.hrfax.example/api/ln/v1/login'
+      header:
+        Content-Type: application/x-www-form-urlencoded
+      body:
+        accountname: '{{accountname}}'
+        accountpass: 501c39c84cb3d3d292f4888583bbb83b
+    bind:
+      vars:
+        token: 'contents.token'
+    expect:
+      retCode: 200
+      body:
+        id: '{{int($) > 0}}'
+        name: '{{vars.repo}}'
+  - title: 获取菜单
+    protocol: http
+    request:
+      method: GET
+      url: 'http://test2rdfrontend.hrfax.example/api/v2/menu/user'
+      header:
+        token: '{{token}}'
+    expect:
+      code: OK
+      body:
+        id: '{{int($) > 0}}'
+        name: '{{vars.repo}}'
