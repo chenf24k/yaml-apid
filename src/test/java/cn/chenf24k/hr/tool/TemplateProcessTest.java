@@ -1,27 +1,37 @@
 package cn.chenf24k.hr.tool;
 
 
-import cn.chenf24k.hr.model.Context;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class TemplateProcessTest {
 
-
-    public static void testProcess() {
-        Context.vars.put("a", "v");
-        String value = "{{a}}";
-        String processed = TemplateProcess.processTemplate(value, Context.vars);
-        System.out.println(processed);
+    @Test
+    public void testProcess() {
+        final Map<String, String> varsMap = new HashMap<>();
+        varsMap.put("weight", "100");
+        varsMap.put("varieties", "fuji");
+        String templateSql = "select id, weight, varieties from apple where weight > {{weight}} and varieties = '{{varieties}}'";
+        String processedSql = TemplateProcess.processTemplate(templateSql, varsMap);
+        String expectSql = "select id, weight, varieties from apple where weight > 100 and varieties = 'fuji'";
+        Assert.assertEquals(expectSql, processedSql);
     }
 
-    public static void textExtract() {
-        String value = "{{a}}";
-        String processed = TemplateProcess.extractTemplate(value);
-        System.out.println(processed);
+    @Test
+    public void textExtract() {
+        String value = "{{a}}-{{b}}-{{c}}";
+        String[] processed = TemplateProcess.extractAllTemplate(value);
+        Assert.assertArrayEquals(new String[]{"a", "b", "c"}, processed);
     }
 
-    public static void main(String[] args) {
-        testProcess();
-        textExtract();
+    @Test
+    public void testExtractTemplate() {
+        String value = "{{user.age > 1}}";
+        String extracted = TemplateProcess.extractTemplate(value);
+        System.out.println(extracted);
     }
-
 }
