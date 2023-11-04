@@ -140,7 +140,7 @@ public class Step {
                             try {
                                 expectValue = Ognl.getValue(expression, this.stepContext);
                             } catch (OgnlException e) {
-                                e.printStackTrace();
+                                // e.printStackTrace();
                             }
                         }
 
@@ -205,11 +205,5 @@ public class Step {
         private Object response;
     }
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    private static class GlobalContext {
-        private Object vars;
-    }
 
 }

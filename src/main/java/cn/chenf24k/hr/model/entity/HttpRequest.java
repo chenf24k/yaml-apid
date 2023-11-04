@@ -7,6 +7,8 @@ import cn.chenf24k.hr.tool.TemplateProcess;
 import com.google.gson.Gson;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ognl.Ognl;
+import ognl.OgnlException;
 import org.apache.http.*;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.fluent.Content;
@@ -84,17 +86,34 @@ public class HttpRequest {
     }
 
     public void preProcessVars() {
-        String newUrl = TemplateProcess.processTemplate(this.getUrl(), Context.vars);
+        GlobalContext globalContext = new GlobalContext(Context.vars);
+        Map<String, String> temp = new HashMap<>();
+
+        List<String> extracted = TemplateProcess.extractAllTemplate(this.getUrl());
+        extracted.addAll(TemplateProcess.extractAllTemplate(this.getHeader().values().toString()));
+        extracted.addAll(TemplateProcess.extractAllTemplate(this.getBody().values().toString()));
+
+        for (String template : extracted) {
+            Object value = null;
+            try {
+                value = Ognl.getValue(template, globalContext);
+            } catch (OgnlException ignored) {
+
+            }
+            temp.put(template, (String) value);
+        }
+        String newUrl = TemplateProcess.processTemplate(this.getUrl(), temp);
         this.setUrl(newUrl);
+
         if (this.getHeader() != null) {
             this.getHeader().forEach((key, value) -> {
-                String newValue = TemplateProcess.processTemplate(value, Context.vars);
+                String newValue = TemplateProcess.processTemplate(value, temp);
                 this.getHeader().replace(key, newValue);
             });
         }
         if (this.getBody() != null) {
             this.getBody().forEach((key, value) -> {
-                String newValue = TemplateProcess.processTemplate(value, Context.vars);
+                String newValue = TemplateProcess.processTemplate(value, temp);
                 this.getBody().replace(key, newValue);
             });
         }

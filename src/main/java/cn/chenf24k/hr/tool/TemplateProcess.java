@@ -37,7 +37,7 @@ public final class TemplateProcess {
      * @param targetContent 操作的字符串
      * @return 提取出的字符串
      */
-    public static String[] extractAllTemplate(String targetContent) {
+    public static List<String> extractAllTemplate(String targetContent) {
         List<String> strings = new ArrayList<>();
         Matcher m = matcher(targetContent);
         while (m.find()) {
@@ -45,7 +45,7 @@ public final class TemplateProcess {
             String value = param.substring(2, param.length() - 2);
             strings.add(value);
         }
-        return strings.toArray(new String[0]);
+        return strings;
     }
 
     public static String extractTemplate(String targetContent) {

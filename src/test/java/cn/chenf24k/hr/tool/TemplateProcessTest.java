@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -24,8 +25,8 @@ public class TemplateProcessTest {
     @Test
     public void textExtract() {
         String value = "{{a}}-{{b}}-{{c}}";
-        String[] processed = TemplateProcess.extractAllTemplate(value);
-        Assert.assertArrayEquals(new String[]{"a", "b", "c"}, processed);
+        List<String> extracted = TemplateProcess.extractAllTemplate(value);
+        Assert.assertArrayEquals(new String[]{"a", "b", "c"}, extracted.toArray());
     }
 
     @Test

@@ -4,32 +4,35 @@ vars:
   job: tester
   code: 0
   total: 346045
+  page: 2
+  api: api
 steps:
   - title: create user
     protocol: http
     request:
       method: POST
-      url: 'https://reqres.in/api/users'
+      url: 'https://reqres.in/{{vars.api}}/users'
       header:
         Content-Type: application/json
+        a: "{{vars.page}}"
       body:
-        name: '{{name}}'
-        job: '{{job}}'
+        name: '{{vars.name}}'
+        job: '{{vars.job}}'
     bind:
       vars:
         id: '{{response.id}}'
     expect:
       name: '{{vars.name}}'
-  - title: fetch user
-    protocol: http
-    request:
-      method: GET
-      url: 'https://test-community-api.xiaomawang.com/api/v1/composition/get-discovery-list?order=hot&type=0&tagId=-1&recommendType=0&page=1&pageSize=20'
-      query:
-        id: 1
-    expect:
-      code: '{{vars.code}}'
-      data:
-        total: '{{vars.total}}'
-      timestamp: '{{response.timestamp > 0}}'
-      message: '成功'
+      job: '{{vars.job}}'
+      id: '{{ response.id > 0 }}'
+#  - title: fetch user
+#    protocol: http
+#    request:
+#      method: GET
+#      url: 'https://reqres.in/api/users?page={{vars.page}}'
+#      query:
+#        id: 1
+#    expect:
+#      page: '{{vars.page}}'
+#      data:
+#        total: '{{response.total > 10}}'
