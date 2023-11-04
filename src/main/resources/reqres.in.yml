@@ -1,0 +1,35 @@
+title: user system test
+vars:
+  name: chenf24k
+  job: tester
+  code: 0
+  total: 346045
+steps:
+  - title: create user
+    protocol: http
+    request:
+      method: POST
+      url: 'https://reqres.in/api/users'
+      header:
+        Content-Type: application/json
+      body:
+        name: '{{name}}'
+        job: '{{job}}'
+    bind:
+      vars:
+        id: '{{response.id}}'
+    expect:
+      name: '{{vars.name}}'
+  - title: fetch user
+    protocol: http
+    request:
+      method: GET
+      url: 'https://test-community-api.xiaomawang.com/api/v1/compositio1n/get-discovery-list?order=hot&type=0&tagId=-1&recommendType=0&page=1&pageSize=20'
+      query:
+        id: 1
+    expect:
+      code: '{{vars.code}}'
+      data:
+        total: '{{vars.total}}'
+      timestamp: '{{response.timestamp > 0}}'
+      message: '成功'

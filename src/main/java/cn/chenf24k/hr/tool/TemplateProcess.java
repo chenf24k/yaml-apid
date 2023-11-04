@@ -1,5 +1,7 @@
 package cn.chenf24k.hr.tool;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,7 +21,7 @@ public final class TemplateProcess {
      */
     public static String processTemplate(String targetContent, Map<String, String> params) {
         StringBuffer sb = new StringBuffer();
-        Matcher m = Pattern.compile("\\{\\{(.+?)\\}\\}").matcher(targetContent);
+        Matcher m = matcher(targetContent);
         while (m.find()) {
             String param = m.group();
             String value = params.get(param.substring(2, param.length() - 2));
@@ -35,15 +37,33 @@ public final class TemplateProcess {
      * @param targetContent 操作的字符串
      * @return 提取出的字符串
      */
-    public static String extractTemplate(String targetContent) {
-        StringBuffer sb = new StringBuffer();
-        Matcher m = Pattern.compile("\\{\\{(.+?)\\}\\}").matcher(targetContent);
+    public static String[] extractAllTemplate(String targetContent) {
+        List<String> strings = new ArrayList<>();
+        Matcher m = matcher(targetContent);
         while (m.find()) {
             String param = m.group();
             String value = param.substring(2, param.length() - 2);
-            m.appendReplacement(sb, value);
+            strings.add(value);
         }
-        m.appendTail(sb);
-        return sb.toString();
+        return strings.toArray(new String[0]);
+    }
+
+    public static String extractTemplate(String targetContent) {
+        String string = null;
+        Matcher m = matcher(targetContent);
+        while (m.find()) {
+            String param = m.group();
+            string = param.substring(2, param.length() - 2);
+        }
+        return string;
+    }
+
+
+    public static boolean isTemplate(String targetContent) {
+        return matcher(targetContent).find();
+    }
+
+    private static Matcher matcher(String targetContent) {
+        return Pattern.compile("\\{\\{(.+?)\\}\\}").matcher(targetContent);
     }
 }

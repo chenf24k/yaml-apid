@@ -12,13 +12,7 @@ public class Main {
 
     public static void main(String[] args) {
         System.setProperty("com.jayway.jsonpath", "warn");
-        YamlObject yamlObject = new YamlObject("http_request.yml");
-        for (Step step : yamlObject.getSteps()) {
-            HttpRequest httpRequest = step.getRequest();
-            System.out.println("------  " + step.getTitle() + "    ------");
-            String response = httpRequest.request();
-//            System.out.println(JsonUtil.pretty(response));
-            step.handleVars(response);
-        }
+        YamlObject yamlObject = new YamlObject("reqres.in.yml");
+        yamlObject.play();
     }
 }

@@ -16,7 +16,7 @@ steps:
         accountpass: 501c39c84cb3d3d292f4888583bbb83b
     bind:
       vars:
-        token: 'contents.token'
+        token: '{{contents.token}}'
     expect:
       retCode: 200
       body:

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public final class Context {
+public class Context {
+
     public static final Map<String, String> vars = new HashMap<>();
 }

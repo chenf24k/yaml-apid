@@ -32,6 +32,15 @@ public class TemplateProcessTest {
     public void testExtractTemplate() {
         String value = "{{user.age > 1}}";
         String extracted = TemplateProcess.extractTemplate(value);
-        System.out.println(extracted);
+        Assert.assertEquals("user.age > 1", extracted);
+    }
+
+    @Test
+    public void testIsTemplate() {
+        String template = "{{user.age > 1}}";
+        String notTemplate = "good days";
+        Assert.assertTrue(TemplateProcess.isTemplate(template));
+        Assert.assertFalse(TemplateProcess.isTemplate(notTemplate));
+
     }
 }

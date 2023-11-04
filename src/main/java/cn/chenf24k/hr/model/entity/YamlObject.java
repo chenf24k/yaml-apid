@@ -2,6 +2,7 @@ package cn.chenf24k.hr.model.entity;
 
 import cn.chenf24k.hr.Main;
 import cn.chenf24k.hr.model.Context;
+import cn.chenf24k.hr.tool.JsonUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.yaml.snakeyaml.Yaml;
@@ -24,5 +25,11 @@ public class YamlObject implements Serializable {
         this.vars = yamlObject.getVars();
         Context.vars.putAll(vars);
         this.steps = yamlObject.getSteps();
+    }
+
+    public void play() {
+        System.out.println("[------   " + this.getTitle() + "   ------]");
+        for (Step step : this.getSteps())
+            step.run();
     }
 }
