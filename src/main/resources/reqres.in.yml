@@ -24,7 +24,7 @@ steps:
     protocol: http
     request:
       method: GET
-      url: 'https://test-community-api.xiaomawang.com/api/v1/compositio1n/get-discovery-list?order=hot&type=0&tagId=-1&recommendType=0&page=1&pageSize=20'
+      url: 'https://test-community-api.xiaomawang.com/api/v1/composition/get-discovery-list?order=hot&type=0&tagId=-1&recommendType=0&page=1&pageSize=20'
       query:
         id: 1
     expect:
