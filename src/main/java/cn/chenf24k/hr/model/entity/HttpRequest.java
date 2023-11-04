@@ -90,8 +90,10 @@ public class HttpRequest {
         Map<String, String> temp = new HashMap<>();
 
         List<String> extracted = TemplateProcess.extractAllTemplate(this.getUrl());
-        extracted.addAll(TemplateProcess.extractAllTemplate(this.getHeader().values().toString()));
-        extracted.addAll(TemplateProcess.extractAllTemplate(this.getBody().values().toString()));
+        if (this.getHeader() != null)
+            extracted.addAll(TemplateProcess.extractAllTemplate(this.getHeader().values().toString()));
+        if (this.getBody() != null)
+            extracted.addAll(TemplateProcess.extractAllTemplate(this.getBody().values().toString()));
 
         for (String template : extracted) {
             Object value = null;

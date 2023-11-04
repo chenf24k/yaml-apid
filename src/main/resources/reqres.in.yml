@@ -24,15 +24,15 @@ steps:
     expect:
       name: '{{vars.name}}'
       job: '{{vars.job}}'
-      id: '{{ response.id > 0 }}'
-#  - title: fetch user
-#    protocol: http
-#    request:
-#      method: GET
-#      url: 'https://reqres.in/api/users?page={{vars.page}}'
-#      query:
-#        id: 1
-#    expect:
-#      page: '{{vars.page}}'
-#      data:
-#        total: '{{response.total > 10}}'
+      id: '{{response.id > 0}}'
+  - title: fetch user
+    protocol: http
+    request:
+      method: GET
+      url: 'https://reqres.in/api/users?page={{vars.page}}'
+      query:
+        id: 1
+    expect:
+      page: '{{vars.page}}'
+      data: "{{response.data.size() > 3}}"
+      total: '{{response.total > 10}}'
