@@ -1,11 +1,10 @@
 package cn.chenf24k.hr.model.entity;
 
-import cn.chenf24k.hr.model.Context;
+import cn.chenf24k.hr.context.GlobalContext;
 import cn.chenf24k.hr.model.enums.PROTOCOL;
 import cn.chenf24k.hr.tool.JsonUtil;
 import cn.chenf24k.hr.tool.PrintUtil;
 import cn.chenf24k.hr.tool.TemplateProcess;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ognl.Ognl;
@@ -59,7 +58,7 @@ public class Step {
                         e.printStackTrace();
                     }
                 }
-                Context.vars.putAll(bindVars);
+                GlobalContext.getInstance().getVars().putAll(bindVars);
             }
         }
     }
@@ -90,7 +89,7 @@ public class Step {
     }
 
     private void assertFunc(Map<String, String> handled) {
-        GlobalContext globalContext = new GlobalContext(Context.vars);
+        GlobalContext globalContext = GlobalContext.getInstance();
 
         if (handled != null && handled.size() > 0) {
             handled.forEach((key, expectEl) -> {

@@ -1,8 +1,6 @@
 package cn.chenf24k.hr.model.entity;
 
-import cn.chenf24k.hr.Main;
-import cn.chenf24k.hr.model.Context;
-import cn.chenf24k.hr.tool.JsonUtil;
+import cn.chenf24k.hr.context.GlobalContext;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.yaml.snakeyaml.Yaml;
@@ -23,7 +21,7 @@ public class YamlObject implements Serializable {
         YamlObject yamlObject = yaml.loadAs(YamlObject.class.getClassLoader().getResourceAsStream(document), YamlObject.class);
         this.title = yamlObject.getTitle();
         this.vars = yamlObject.getVars();
-        Context.vars.putAll(vars);
+        GlobalContext.getInstance().getVars().putAll(vars);
         this.steps = yamlObject.getSteps();
     }
 

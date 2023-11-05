@@ -1,26 +1,22 @@
 package cn.chenf24k.hr.model.entity;
 
-import cn.chenf24k.hr.model.Context;
+import cn.chenf24k.hr.context.GlobalContext;
 import cn.chenf24k.hr.model.enums.METHOD;
 import cn.chenf24k.hr.tool.JsonUtil;
 import cn.chenf24k.hr.tool.TemplateProcess;
-import com.google.gson.Gson;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ognl.Ognl;
 import ognl.OgnlException;
 import org.apache.http.*;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.ContentResponseHandler;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -86,7 +82,7 @@ public class HttpRequest {
     }
 
     public void preProcessVars() {
-        GlobalContext globalContext = new GlobalContext(Context.vars);
+        GlobalContext globalContext = GlobalContext.getInstance();
         Map<String, String> temp = new HashMap<>();
 
         List<String> extracted = TemplateProcess.extractAllTemplate(this.getUrl());
