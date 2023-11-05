@@ -41,25 +41,22 @@ public class Step {
     }
 
     /**
-     * 处理像响应后的参数提取、注入上下文
+     * 处理像响应后的参数绑定、注入全局上下文
      */
     private void bindVars() {
-        if (this.bind != null) {
+        if (this.bind != null && !this.bind.getVars().isEmpty()) {
             Map<String, String> bindVars = this.bind.getVars();
-            if (!bindVars.isEmpty()) {
-                Set<String> keySet = bindVars.keySet();
-                for (String key : keySet) {
-                    String template = bindVars.get(key);
-                    String expression = TemplateProcess.extractTemplate(template);
-                    try {
-                        String result = (String) Ognl.getValue(expression, this.stepContext);
-                        bindVars.put(key, result);
-                    } catch (OgnlException e) {
-                        e.printStackTrace();
-                    }
+            bindVars.forEach((varKey, varValue) -> {
+                String template = bindVars.get(varKey);
+                String expression = TemplateProcess.extractTemplate(template);
+                try {
+                    String result = (String) Ognl.getValue(expression, this.stepContext);
+                    bindVars.put(varKey, result);
+                } catch (OgnlException e) {
+                    e.printStackTrace();
                 }
-                GlobalContext.getInstance().getVars().putAll(bindVars);
-            }
+            });
+            GlobalContext.getInstance().getVars().putAll(bindVars);
         }
     }
 
@@ -72,19 +69,18 @@ public class Step {
      */
     private Map<String, String> handleExpect(String root, Map<String, Object> expect) {
         Map<String, String> expectMaps = new LinkedHashMap<>();
-        if (expect != null && expect.size() > 0) {
+        if (expect != null && expect.size() > 0)
             expect.forEach((key, template) -> {
-                if (template instanceof Map) {
+                if (template instanceof Map)
                     expectMaps.putAll(this.handleExpect(key, (Map<String, Object>) template));
-                } else {
+                else
                     expectMaps.put(
                             Objects.equals(root, "") ? key : root + "." + key
                             ,
                             (String) template
                     );
-                }
+
             });
-        }
         return expectMaps;
     }
 
