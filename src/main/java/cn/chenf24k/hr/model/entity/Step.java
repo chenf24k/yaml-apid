@@ -135,108 +135,17 @@ public class Step {
                     result = new Result((Boolean) expectEl, key, expectEl, actualValue);
                     results.add(result);
                 } else {
-                    if (expectEl != null) {
-                        boolean b = expectEl.equals(actualValue);
-                        result = new Result(b, key, expectEl, actualValue);
-                        results.add(result);
+                    if (expectEl == null) {
+                        expectEl = "null";
                     }
+                    boolean b = expectEl.equals(actualValue);
+                    result = new Result(b, key, expectEl, actualValue);
+                    results.add(result);
                 }
             });
 
         }
     }
-
-
-//    private void assertFunc(Map<String, String> handled) {
-//        if (handled != null && !handled.isEmpty()) {
-//
-//            handled.forEach((key, expectEl) -> {
-//                // 判断是否为模板字符
-//                boolean isTemplate = TemplateProcess.isTemplate(expectEl);
-//
-//                if (isTemplate) {
-//                    // 模板字符：是：表达式处理
-//                    String expression = TemplateProcess.extractTemplate(expectEl);
-//
-//                    // 是否进行 关系运算比较
-//                    boolean isContainsMark = Arrays.stream(relationalOperator).anyMatch(expression::contains);
-//                    Object expectValue = null;
-//                    try {
-//                        expectValue = Ognl.getValue(expression, this.stepContext);
-//                    } catch (OgnlException ignored) {
-//
-//                    }
-//                    if (isContainsMark) {
-//                        Object actualValue = null;
-//                        try {
-//                            Object response = this.stepContext.getResponse();
-//                            actualValue = Ognl.getValue(key, response);
-//                        } catch (OgnlException e) {
-//                            // e.printStackTrace();
-//                        }
-//
-//                        if (actualValue != null) {
-//                            String type = actualValue.getClass().getName();
-//                            if (type.contains("Double")) {
-//                                actualValue = String.valueOf(((Double) actualValue).intValue());
-//                            }
-//                        }
-//
-//                        Result result = new Result((Boolean) expectValue, key, expression, actualValue);
-//                        results.add(result);
-//                    } else {
-//                        if (expectValue == null) {
-//                            try {
-//                                expectValue = Ognl.getValue(expression, this.stepContext);
-//                            } catch (OgnlException e) {
-//                                // e.printStackTrace();
-//                            }
-//                        }
-//
-//                        Object actualValue = null;
-//                        try {
-//                            Object response = this.stepContext.getResponse();
-//                            actualValue = Ognl.getValue(key, response);
-//                        } catch (OgnlException e) {
-//                            // e.printStackTrace();
-//                        }
-//
-//                        if (actualValue != null) {
-//                            String type = actualValue.getClass().getName();
-//                            if (type.contains("Double")) {
-//                                actualValue = String.valueOf(((Double) actualValue).intValue());
-//                            }
-//                        }
-//
-//                        boolean b = expectValue.equals(actualValue);
-//                        Result result = new Result(b, key, expectValue, actualValue);
-//                        results.add(result);
-//                    }
-//                } else {
-//                    // 模板字符：否：直接进行字符串比较
-//                    Object actualValue = null;
-//                    try {
-//                        Object response = this.stepContext.getResponse();
-//                        actualValue = Ognl.getValue(key, response);
-//                    } catch (OgnlException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    if (actualValue != null) {
-//                        String type = actualValue.getClass().getName();
-//                        if (type.contains("Double")) {
-//                            actualValue = String.valueOf(((Double) actualValue).intValue());
-//                        }
-//                    }
-//
-//                    boolean b = ((Object) expectEl).equals(actualValue);
-//                    Result result = new Result(b, key, expectEl, actualValue);
-//                    results.add(result);
-//                }
-//            });
-//
-//        }
-//    }
 
     private void outputResult() {
         List<Result> collect = results.stream().filter(Result::isSuccess)

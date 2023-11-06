@@ -22,16 +22,16 @@ public class PrintUtil {
         results.forEach(result -> {
             boolean isSuccess = result.isSuccess();
             if (isSuccess) {
-                System.out.println(result.getTitle()
+                System.out.println("\033[32mpassed\033[0m"
                         + " => "
-                        + "\033[32mpassed\033[0m"
+                        + "[" + result.getTitle() + "]"
                         + " actual: " + result.getActualValue()
                         + " expect: " + result.getExpectValue()
                 );
             } else {
-                System.out.println(result.getTitle()
+                System.out.println("\033[31mfailed\033[0m"
                         + " => "
-                        + "\033[31mfailed\033[0m"
+                        + "[" + result.getTitle() + "]"
                         + " actual: \033[31m" + result.getActualValue() + "\033[0m"
                         + " expect: \033[31m" + result.getExpectValue() + "\033[0m"
                 );

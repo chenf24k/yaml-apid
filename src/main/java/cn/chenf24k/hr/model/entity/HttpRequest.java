@@ -151,7 +151,7 @@ public class HttpRequest {
         requestInfo.put("method", this.getMethod());
         requestInfo.put("header", this.getHeader());
         requestInfo.put("body", this.getBody());
-        System.out.println("request: \r\n" + JsonUtil.pretty(JsonUtil.toJsonString(requestInfo)));
+        // System.out.println("request: \r\n" + JsonUtil.pretty(JsonUtil.toJsonString(requestInfo)));
     }
 
     public void printResponseInfo() {
@@ -160,7 +160,7 @@ public class HttpRequest {
         responseInfo.put("httpCode", this.getHttpStatus());
         responseInfo.put("responseText", this.getResponse());
         responseInfo.put("reason", this.getReason());
-        System.out.println("response: \r\n" + JsonUtil.pretty(JsonUtil.toJsonString(responseInfo)));
+        // System.out.println("response: \r\n" + JsonUtil.pretty(JsonUtil.toJsonString(responseInfo)));
     }
 
     public String execute() {
