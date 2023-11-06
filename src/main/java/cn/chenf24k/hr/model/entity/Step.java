@@ -35,8 +35,12 @@ public class Step {
         this.stepContext.setResponse(object);
         this.bindVars();
 
-        Map<String, String> handled = this.handleExpect("", this.getExpect());
-        this.assertFunc(handled);
+        Map<String, String> handled = this.handleToUnidimensional("", this.getExpect());
+        // 将全局变量塞入 stepContext
+        this.stepContext.setVars(GlobalContext.getInstance().getVars());
+
+        Map<String, Object> stringObjectMap = this.handleExpectExpressions(handled);
+        this.assertFunc(stringObjectMap);
         outputResult();
     }
 
@@ -61,128 +65,178 @@ public class Step {
     }
 
     /**
-     * 递归处理期望值
+     * 递归处理期望keys，返回一个单线map
      *
      * @param root
      * @param expect
      * @return
      */
-    private Map<String, String> handleExpect(String root, Map<String, Object> expect) {
+    private Map<String, String> handleToUnidimensional(String root, Map<String, Object> expect) {
         Map<String, String> expectMaps = new LinkedHashMap<>();
-        if (expect != null && expect.size() > 0)
+        if (expect != null && !expect.isEmpty())
             expect.forEach((key, template) -> {
+                String rootString = Objects.equals(root, "") ? key : root + "." + key;
                 if (template instanceof Map)
-                    expectMaps.putAll(this.handleExpect(key, (Map<String, Object>) template));
-                else
+                    expectMaps.putAll(this.handleToUnidimensional(rootString, (Map<String, Object>) template));
+                else {
                     expectMaps.put(
-                            Objects.equals(root, "") ? key : root + "." + key
+                            rootString
                             ,
-                            (String) template
+                            Objects.toString(template)
                     );
-
+                }
             });
         return expectMaps;
     }
 
-    private void assertFunc(Map<String, String> handled) {
-        GlobalContext globalContext = GlobalContext.getInstance();
-
-        if (handled != null && handled.size() > 0) {
+    private Map<String, Object> handleExpectExpressions(Map<String, String> handled) {
+        Map<String, Object> actualWithExpect = new LinkedHashMap<>();
+        if (handled != null && !handled.isEmpty()) {
             handled.forEach((key, expectEl) -> {
-                // 判断是否为模板字符
                 boolean isTemplate = TemplateProcess.isTemplate(expectEl);
-
+                Object expectValue = null;
                 if (isTemplate) {
-                    // 模板字符：是：表达式处理
-                    String expression = TemplateProcess.extractTemplate(expectEl);
-
-                    // 是否进行 关系运算比较
-                    boolean isContainsMark = Arrays.stream(relationalOperator).anyMatch(expression::contains);
-                    Object expectValue = null;
                     try {
-                        expectValue = Ognl.getValue(expression, globalContext);
+                        String extracted = TemplateProcess.extractTemplate(expectEl);
+                        expectValue = Ognl.getValue(extracted, this.stepContext);
                     } catch (OgnlException ignored) {
 
                     }
-                    if (isContainsMark) {
-                        if (expectValue == null) {
-                            try {
-                                expectValue = Ognl.getValue(expression, this.stepContext);
-                            } catch (OgnlException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        Object actualValue = null;
-                        try {
-                            Object response = this.stepContext.getResponse();
-                            actualValue = Ognl.getValue(key, response);
-                        } catch (OgnlException e) {
-                            // e.printStackTrace();
-                        }
-
-                        if (actualValue != null) {
-                            String type = actualValue.getClass().getName();
-                            if (type.contains("Double")) {
-                                actualValue = String.valueOf(((Double) actualValue).intValue());
-                            }
-                        }
-
-                        Result result = new Result((Boolean) expectValue, key, expression, actualValue);
-                        results.add(result);
-                    } else {
-                        if (expectValue == null) {
-                            try {
-                                expectValue = Ognl.getValue(expression, this.stepContext);
-                            } catch (OgnlException e) {
-                                // e.printStackTrace();
-                            }
-                        }
-
-                        Object actualValue = null;
-                        try {
-                            Object response = this.stepContext.getResponse();
-                            actualValue = Ognl.getValue(key, response);
-                        } catch (OgnlException e) {
-                            // e.printStackTrace();
-                        }
-
-                        if (actualValue != null) {
-                            String type = actualValue.getClass().getName();
-                            if (type.contains("Double")) {
-                                actualValue = String.valueOf(((Double) actualValue).intValue());
-                            }
-                        }
-
-                        boolean b = expectValue.equals(actualValue);
-                        Result result = new Result(b, key, expectValue, actualValue);
-                        results.add(result);
-                    }
                 } else {
-                    // 模板字符：否：直接进行字符串比较
-                    Object actualValue = null;
-                    try {
-                        Object response = this.stepContext.getResponse();
-                        actualValue = Ognl.getValue(key, response);
-                    } catch (OgnlException e) {
-                        e.printStackTrace();
-                    }
+                    expectValue = expectEl;
+                }
+                actualWithExpect.put(key, expectValue);
+            });
+        }
+        return actualWithExpect;
+    }
 
-                    if (actualValue != null) {
-                        String type = actualValue.getClass().getName();
-                        if (type.contains("Double")) {
-                            actualValue = String.valueOf(((Double) actualValue).intValue());
-                        }
-                    }
+    private void assertFunc(Map<String, Object> handled) {
+        if (handled != null && !handled.isEmpty()) {
+            handled.forEach((key, expectEl) -> {
+                // 模板字符：否：直接进行字符串比较
+                Object actualValue = null;
+                try {
+                    Object response = this.stepContext.getResponse();
+                    actualValue = Ognl.getValue(key, response);
+                } catch (OgnlException e) {
+                    // e.printStackTrace();
+                }
 
-                    boolean b = ((Object) expectEl).equals(actualValue);
-                    Result result = new Result(b, key, expectEl, actualValue);
+                if (actualValue != null) {
+                    String type = actualValue.getClass().getName();
+                    if (type.contains("Double")) {
+                        actualValue = String.valueOf(((Double) actualValue).intValue());
+                    }
+                }
+
+                Result result;
+                if (expectEl instanceof Boolean) {
+                    result = new Result((Boolean) expectEl, key, expectEl, actualValue);
                     results.add(result);
+                } else {
+                    if (expectEl != null) {
+                        boolean b = expectEl.equals(actualValue);
+                        result = new Result(b, key, expectEl, actualValue);
+                        results.add(result);
+                    }
                 }
             });
 
         }
     }
+
+
+//    private void assertFunc(Map<String, String> handled) {
+//        if (handled != null && !handled.isEmpty()) {
+//
+//            handled.forEach((key, expectEl) -> {
+//                // 判断是否为模板字符
+//                boolean isTemplate = TemplateProcess.isTemplate(expectEl);
+//
+//                if (isTemplate) {
+//                    // 模板字符：是：表达式处理
+//                    String expression = TemplateProcess.extractTemplate(expectEl);
+//
+//                    // 是否进行 关系运算比较
+//                    boolean isContainsMark = Arrays.stream(relationalOperator).anyMatch(expression::contains);
+//                    Object expectValue = null;
+//                    try {
+//                        expectValue = Ognl.getValue(expression, this.stepContext);
+//                    } catch (OgnlException ignored) {
+//
+//                    }
+//                    if (isContainsMark) {
+//                        Object actualValue = null;
+//                        try {
+//                            Object response = this.stepContext.getResponse();
+//                            actualValue = Ognl.getValue(key, response);
+//                        } catch (OgnlException e) {
+//                            // e.printStackTrace();
+//                        }
+//
+//                        if (actualValue != null) {
+//                            String type = actualValue.getClass().getName();
+//                            if (type.contains("Double")) {
+//                                actualValue = String.valueOf(((Double) actualValue).intValue());
+//                            }
+//                        }
+//
+//                        Result result = new Result((Boolean) expectValue, key, expression, actualValue);
+//                        results.add(result);
+//                    } else {
+//                        if (expectValue == null) {
+//                            try {
+//                                expectValue = Ognl.getValue(expression, this.stepContext);
+//                            } catch (OgnlException e) {
+//                                // e.printStackTrace();
+//                            }
+//                        }
+//
+//                        Object actualValue = null;
+//                        try {
+//                            Object response = this.stepContext.getResponse();
+//                            actualValue = Ognl.getValue(key, response);
+//                        } catch (OgnlException e) {
+//                            // e.printStackTrace();
+//                        }
+//
+//                        if (actualValue != null) {
+//                            String type = actualValue.getClass().getName();
+//                            if (type.contains("Double")) {
+//                                actualValue = String.valueOf(((Double) actualValue).intValue());
+//                            }
+//                        }
+//
+//                        boolean b = expectValue.equals(actualValue);
+//                        Result result = new Result(b, key, expectValue, actualValue);
+//                        results.add(result);
+//                    }
+//                } else {
+//                    // 模板字符：否：直接进行字符串比较
+//                    Object actualValue = null;
+//                    try {
+//                        Object response = this.stepContext.getResponse();
+//                        actualValue = Ognl.getValue(key, response);
+//                    } catch (OgnlException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    if (actualValue != null) {
+//                        String type = actualValue.getClass().getName();
+//                        if (type.contains("Double")) {
+//                            actualValue = String.valueOf(((Double) actualValue).intValue());
+//                        }
+//                    }
+//
+//                    boolean b = ((Object) expectEl).equals(actualValue);
+//                    Result result = new Result(b, key, expectEl, actualValue);
+//                    results.add(result);
+//                }
+//            });
+//
+//        }
+//    }
 
     private void outputResult() {
         List<Result> collect = results.stream().filter(Result::isSuccess)
@@ -198,7 +252,7 @@ public class Step {
     @NoArgsConstructor
     private static class StepContext {
         private Object response;
+        private Object vars;
     }
-
 
 }

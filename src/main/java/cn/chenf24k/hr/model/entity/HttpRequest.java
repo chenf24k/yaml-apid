@@ -54,6 +54,7 @@ public class HttpRequest {
             return;
         }
         List<Header> headers = new ArrayList<>(this.getHeader().size());
+        headers.add(new BasicHeader("user-agent", "yaml-apid"));
         this.getHeader().forEach((key, value) -> {
             Header basicHeader = new BasicHeader(key, value);
             if (key.trim().toLowerCase().contains("content-type"))
@@ -179,7 +180,7 @@ public class HttpRequest {
             // System.out.println("Time Interval in Milliseconds: " + milliseconds + " ms");
             // log.info("Time Interval in Milliseconds: {} ms", milliseconds);
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             this.setReason(e.getMessage());
         } finally {
             LocalDateTime endTime = LocalDateTime.now();

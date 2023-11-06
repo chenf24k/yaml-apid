@@ -1,0 +1,57 @@
+title: 测试环境面签流程-实施端
+vars:
+  host: facesign-impl-test.hrfax.cn
+  userName: yangchaoyang
+  password: 111111
+  bankCode: 0180400023
+steps:
+  - title: login
+    protocol: http
+    request:
+      method: POST
+      url: 'https://{{vars.host}}/api/sys/login'
+      header:
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      body:
+        userName: '{{vars.userName}}'
+        password: '{{vars.password}}'
+    bind:
+      vars:
+        token: '{{response.data.token}}'
+    expect:
+      code: 0
+      msg: 'success'
+      data:
+        token: '{{response.data.token != null}}'
+  - title: info
+    protocol: http
+    request:
+      method: POST
+      url: 'https://{{vars.host}}/api/sysUser/info'
+      header:
+        Content-Type: application/json
+        Authorization: '{{vars.token}}'
+      body:
+        userName: '{{vars.userName}}'
+        password: '{{vars.password}}'
+    expect:
+      code: 0
+      msg: 'success'
+      data:
+        sysUser:
+          userName: '{{vars.userName}}'
+  - title: dept/get
+    protocol: http
+    request:
+      method: POST
+      url: 'https://{{vars.host}}/api/dept/get'
+      header:
+        Content-Type: application/json
+        Authorization: '{{vars.token}}'
+      body:
+        bankCode: '{{vars.bankCode}}'
+    expect:
+      code: 0
+      msg: 'success'
+      data: '{{response.data.size() >= 1}}'
+      data[0].bankCode: '{{response.data[0].bankCode == vars.bankCode}}'
