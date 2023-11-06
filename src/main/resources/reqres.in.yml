@@ -1,6 +1,5 @@
 title: user system test
 vars:
-  # TODO 全部变量处理支持ognl
   name: chenf24k
   job: tester
   code: 0
