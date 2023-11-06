@@ -1,10 +1,11 @@
 title: user system test
 vars:
+  # TODO 全部变量处理支持ognl
   name: chenf24k
   job: tester
   code: 0
   total: 346045
-  page: 2
+  page: "{{@cn.hutool.core.util.RandomUtil@randomBigDecimal()}}"
   api: api
 steps:
   - title: create user
@@ -30,6 +31,7 @@ steps:
     request:
       method: GET
       url: 'https://reqres.in/api/users?page={{vars.page}}'
+      # TODO query 解析待支持
       query:
         id: 1
     expect:

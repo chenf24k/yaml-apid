@@ -1,6 +1,7 @@
 package cn.chenf24k.hr.tool;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -38,7 +39,7 @@ public final class TemplateProcess {
      * @return 提取出的字符串
      */
     public static List<String> extractAllTemplate(String targetContent) {
-        List<String> strings = new ArrayList<>();
+        List<String> strings = new LinkedList<>();
         Matcher m = matcher(targetContent);
         while (m.find()) {
             String param = m.group();

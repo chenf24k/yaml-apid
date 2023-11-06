@@ -1,11 +1,15 @@
 package cn.chenf24k.hr.model.entity;
 
 import cn.chenf24k.hr.context.GlobalContext;
+import cn.chenf24k.hr.ognl.DefaultMemberAccess;
+import cn.chenf24k.hr.tool.TemplateProcess;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ognl.*;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Data
@@ -21,8 +25,29 @@ public class YamlObject implements Serializable {
         YamlObject yamlObject = yaml.loadAs(YamlObject.class.getClassLoader().getResourceAsStream(document), YamlObject.class);
         this.title = yamlObject.getTitle();
         this.vars = yamlObject.getVars();
-        GlobalContext.getInstance().getVars().putAll(vars);
+        // GlobalContext.getInstance().getVars().putAll(vars);
         this.steps = yamlObject.getSteps();
+        preHandle();
+    }
+
+    public void preHandle() {
+        Map<String, Object> globalVars = new LinkedHashMap<>();
+        this.getVars().forEach((varName, varValue) -> {
+            Object handleValue = null;
+            if (TemplateProcess.isTemplate(varValue)) {
+                String extracted = TemplateProcess.extractTemplate(varValue);
+                try {
+                    Object expression = Ognl.parseExpression(extracted);
+                    handleValue = Ognl.getValue(expression, this);
+                } catch (OgnlException ignored) {
+
+                }
+            } else {
+                handleValue = varValue;
+            }
+            globalVars.put(varName, handleValue);
+        });
+        GlobalContext.getInstance().getVars().putAll(globalVars);
     }
 
     public void play() {

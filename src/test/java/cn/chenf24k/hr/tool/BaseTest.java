@@ -1,5 +1,7 @@
 package cn.chenf24k.hr.tool;
 
+import cn.hutool.core.util.IdcardUtil;
+import cn.hutool.core.util.RandomUtil;
 import org.junit.Test;
 
 import java.util.HashMap;

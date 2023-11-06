@@ -54,7 +54,7 @@ public class HttpRequest {
             return;
         }
         List<Header> headers = new ArrayList<>(this.getHeader().size());
-        headers.add(new BasicHeader("user-agent", "yaml-apid"));
+        headers.add(new BasicHeader("user-agent", "YAML-APID"));
         this.getHeader().forEach((key, value) -> {
             Header basicHeader = new BasicHeader(key, value);
             if (key.trim().toLowerCase().contains("content-type"))
@@ -86,10 +86,13 @@ public class HttpRequest {
         GlobalContext globalContext = GlobalContext.getInstance();
         Map<String, String> temp = new HashMap<>();
 
-        List<String> extracted = TemplateProcess.extractAllTemplate(this.getUrl());
-        if (this.getHeader() != null)
+        List<String> extracted = new LinkedList<>();
+
+        if (this.getUrl() != null) // url 处理
+            extracted.addAll(TemplateProcess.extractAllTemplate(this.getUrl()));
+        if (this.getHeader() != null) // header 处理
             extracted.addAll(TemplateProcess.extractAllTemplate(this.getHeader().values().toString()));
-        if (this.getBody() != null)
+        if (this.getBody() != null) // body 处理
             extracted.addAll(TemplateProcess.extractAllTemplate(this.getBody().values().toString()));
 
         for (String template : extracted) {
@@ -99,8 +102,9 @@ public class HttpRequest {
             } catch (OgnlException ignored) {
 
             }
-            temp.put(template, (String) value);
+            temp.put(template, String.valueOf(value));
         }
+
         String newUrl = TemplateProcess.processTemplate(this.getUrl(), temp);
         this.setUrl(newUrl);
 
@@ -116,6 +120,8 @@ public class HttpRequest {
                 this.getBody().replace(key, newValue);
             });
         }
+
+
     }
 
     public void body() {
