@@ -1,8 +1,8 @@
 title: user system test
 vars:
-  name: chenf24k
+  name: "{{1+1}}"
   job: tester
-  code: 0
+  code: "{{0}}"
   total: 346045
   page: "{{@cn.hutool.core.util.RandomUtil@randomBigDecimal()}}"
   api: api

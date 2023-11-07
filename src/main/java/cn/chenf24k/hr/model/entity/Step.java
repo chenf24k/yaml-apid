@@ -5,6 +5,7 @@ import cn.chenf24k.hr.model.enums.PROTOCOL;
 import cn.chenf24k.hr.tool.JsonUtil;
 import cn.chenf24k.hr.tool.PrintUtil;
 import cn.chenf24k.hr.tool.TemplateProcess;
+import cn.hutool.core.lang.Assert;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ognl.Ognl;

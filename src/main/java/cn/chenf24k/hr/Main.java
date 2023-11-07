@@ -12,12 +12,8 @@ import java.util.Map;
 public class Main {
 
     public static void main(String[] args) {
-        // System.setProperty("com.jayway.jsonpath", "warn");
-//         YamlObject yamlObject = new YamlObject("reqres.in.yml");
-//         yamlObject.play();
-
         YamlApi yamlApi = YamlApi.getInstance();
-//        yamlApi.add("facesign/facesign-impl-test.yml");
+        // yamlApi.add("facesign/facesign-impl-test.yml");
         yamlApi.add("reqres.in.yml");
         yamlApi.play();
     }

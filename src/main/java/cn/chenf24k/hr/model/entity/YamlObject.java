@@ -25,7 +25,6 @@ public class YamlObject implements Serializable {
         YamlObject yamlObject = yaml.loadAs(YamlObject.class.getClassLoader().getResourceAsStream(document), YamlObject.class);
         this.title = yamlObject.getTitle();
         this.vars = yamlObject.getVars();
-        // GlobalContext.getInstance().getVars().putAll(vars);
         this.steps = yamlObject.getSteps();
         preHandle();
     }

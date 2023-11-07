@@ -25,15 +25,15 @@ public class PrintUtil {
                 System.out.println("\033[32mpassed\033[0m"
                         + " => "
                         + "[" + result.getTitle() + "]"
-                        + " actual: " + result.getActualValue()
                         + " expect: " + result.getExpectValue()
+                        + " actual: " + result.getActualValue()
                 );
             } else {
                 System.out.println("\033[31mfailed\033[0m"
                         + " => "
                         + "[" + result.getTitle() + "]"
-                        + " actual: \033[31m" + result.getActualValue() + "\033[0m"
                         + " expect: \033[31m" + result.getExpectValue() + "\033[0m"
+                        + " actual: \033[31m" + result.getActualValue() + "\033[0m"
                 );
             }
 
