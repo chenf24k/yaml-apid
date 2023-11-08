@@ -12,6 +12,7 @@ import org.apache.http.*;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.fluent.ContentResponseHandler;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
@@ -43,6 +44,7 @@ public class HttpRequest {
 
     public String request() {
         preProcessVars();
+        handleQueryParam();
         method();
         headers();
         body();
@@ -50,11 +52,11 @@ public class HttpRequest {
     }
 
     public void headers() {
+        List<Header> headers = new ArrayList<>();
+        request.addHeader("user-agent", "YAML_APID");
         if (this.getHeader() == null || this.getHeader().isEmpty()) {
             return;
         }
-        List<Header> headers = new ArrayList<>(this.getHeader().size());
-        headers.add(new BasicHeader("user-agent", "YAML-APID"));
         this.getHeader().forEach((key, value) -> {
             Header basicHeader = new BasicHeader(key, value);
             if (key.trim().toLowerCase().contains("content-type"))
@@ -62,6 +64,33 @@ public class HttpRequest {
             headers.add(basicHeader);
         });
         request.setHeaders(headers.toArray(new Header[0]));
+    }
+
+    public void handleQueryParam() {
+        if (this.getQuery() == null || this.getQuery().isEmpty()) {
+            return;
+        }
+        StringBuilder queryParams = new StringBuilder();
+
+
+        this.getQuery().forEach((key, value) -> {
+            if (queryParams.lastIndexOf("&") != url.length() - 1) {
+                queryParams.append("&");
+            }
+            queryParams.append(key).append("=").append(value);
+        });
+
+        // 如果url的最后一位刚好是?，可以直接添加参数
+        if (this.getUrl().lastIndexOf("?") != this.getUrl().length() - 1) {
+            // 判断是否存在?
+            if (this.getUrl().contains("?")) {
+                this.setUrl(this.getUrl() + queryParams);
+            } else {
+                this.setUrl(this.getUrl() + "?" + queryParams);
+            }
+        }
+        String url1 = this.getUrl();
+        System.out.println(url1);
     }
 
     public void method() {
@@ -90,6 +119,8 @@ public class HttpRequest {
 
         if (this.getUrl() != null) // url 处理
             extracted.addAll(TemplateProcess.extractAllTemplate(this.getUrl()));
+        if (this.getQuery() != null) // query 处理
+            extracted.addAll(TemplateProcess.extractAllTemplate(this.getQuery().values().toString()));
         if (this.getHeader() != null) // header 处理
             extracted.addAll(TemplateProcess.extractAllTemplate(this.getHeader().values().toString()));
         if (this.getBody() != null) // body 处理
@@ -105,22 +136,33 @@ public class HttpRequest {
             temp.put(template, String.valueOf(value));
         }
 
+        // url
         String newUrl = TemplateProcess.processTemplate(this.getUrl(), temp);
         this.setUrl(newUrl);
 
+        // query
+        if (this.getQuery() != null) {
+            this.getQuery().forEach((key, value) -> {
+                String newValue = TemplateProcess.processTemplate(value, temp);
+                this.getQuery().replace(key, newValue);
+            });
+        }
+
+        // header
         if (this.getHeader() != null) {
             this.getHeader().forEach((key, value) -> {
                 String newValue = TemplateProcess.processTemplate(value, temp);
                 this.getHeader().replace(key, newValue);
             });
         }
+
+        // body
         if (this.getBody() != null) {
             this.getBody().forEach((key, value) -> {
                 String newValue = TemplateProcess.processTemplate(value, temp);
                 this.getBody().replace(key, newValue);
             });
         }
-
 
     }
 
@@ -178,6 +220,7 @@ public class HttpRequest {
             StatusLine statusLine = httpResponse.getStatusLine();
             setHttpStatus(statusLine.getStatusCode());
 
+            // TODO 响应中无法保留数字类型
             response = new ContentResponseHandler()
                     .handleResponse(httpResponse)
                     .asString(StandardCharsets.UTF_8);

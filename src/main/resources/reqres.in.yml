@@ -29,10 +29,9 @@ steps:
     protocol: http
     request:
       method: GET
-      url: 'https://reqres.in/api/users?page={{vars.page}}'
-      # TODO query 解析待支持
+      url: 'https://reqres.in/api/users'
       query:
-        id: 1
+        page: '{{vars.page}}'
     expect:
       page: '{{vars.page}}'
       data: "{{response.data.size() > 3}}"
