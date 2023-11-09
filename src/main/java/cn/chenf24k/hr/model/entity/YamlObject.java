@@ -29,23 +29,28 @@ public class YamlObject implements Serializable {
         preHandle();
     }
 
+    /**
+     * 处理全部变量
+     */
     public void preHandle() {
         Map<String, Object> globalVars = new LinkedHashMap<>();
-        this.getVars().forEach((varName, varValue) -> {
-            Object handleValue = null;
-            if (TemplateProcess.isTemplate(varValue)) {
-                String extracted = TemplateProcess.extractTemplate(varValue);
-                try {
-                    Object expression = Ognl.parseExpression(extracted);
-                    handleValue = Ognl.getValue(expression, this);
-                } catch (OgnlException ignored) {
+        if (this.getVars() != null && !this.getVars().isEmpty())
+            this.getVars().forEach((varName, varValue) -> {
+                Object handleValue = null;
+                if (TemplateProcess.isTemplate(varValue)) {
+                    String extracted = TemplateProcess.extractTemplate(varValue);
+                    try {
+                        Object expression = Ognl.parseExpression(extracted);
+                        handleValue = Ognl.getValue(expression, this);
+                    } catch (OgnlException ignored) {
 
+                    }
+                } else {
+                    handleValue = varValue;
                 }
-            } else {
-                handleValue = varValue;
-            }
-            globalVars.put(varName, handleValue);
-        });
+                globalVars.put(varName, handleValue);
+            });
+
         GlobalContext.getInstance().getVars().putAll(globalVars);
     }
 

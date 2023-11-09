@@ -1,6 +1,6 @@
 title: user system test
 vars:
-  name: "{{1+1}}"
+  name: 2
   job: tester
   code: "{{0}}"
   total: 346045
