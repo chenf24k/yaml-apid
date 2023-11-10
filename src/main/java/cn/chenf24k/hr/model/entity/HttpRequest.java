@@ -8,15 +8,25 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ognl.Ognl;
 import ognl.OgnlException;
-import org.apache.http.*;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.fluent.ContentResponseHandler;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.client.utils.URIUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicNameValuePair;
+//import org.apache.http.*;
+//import org.apache.http.client.entity.UrlEncodedFormEntity;
+//import org.apache.http.client.fluent.ContentResponseHandler;
+//import org.apache.http.client.fluent.Request;
+//import org.apache.http.client.utils.URIUtils;
+//import org.apache.http.entity.ContentType;
+//import org.apache.http.message.BasicHeader;
+//import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.fluent.ContentResponseHandler;
+import org.apache.hc.client5.http.fluent.Executor;
+import org.apache.hc.client5.http.fluent.Request;
+import org.apache.hc.core5.http.*;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.StatusLine;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +51,7 @@ public class HttpRequest {
     private String response;
     private long duration;
     private String reason;
+    final Executor executor = Executor.newInstance();
 
     public String request() {
         preProcessVars();
@@ -63,6 +74,9 @@ public class HttpRequest {
                 this.setContentType(value.trim().toLowerCase());
             headers.add(basicHeader);
         });
+        headers.removeIf(header1 ->
+                header1.getValue().contains("multipart/form-data")
+        );
         request.setHeaders(headers.toArray(new Header[0]));
     }
 
@@ -96,16 +110,16 @@ public class HttpRequest {
     public void method() {
         switch (this.getMethod()) {
             case GET:
-                request = Request.Get(this.getUrl());
+                request = Request.get(this.getUrl());
                 break;
             case POST:
-                request = Request.Post(this.getUrl());
+                request = Request.post(this.getUrl());
                 break;
             case PUT:
-                request = Request.Put(this.getUrl());
+                request = Request.put(this.getUrl());
                 break;
             case DELETE:
-                request = Request.Delete(this.getUrl());
+                request = Request.delete(this.getUrl());
             default:
                 throw new RuntimeException("This method is not supported: " + this.getMethod());
         }
@@ -167,7 +181,7 @@ public class HttpRequest {
     }
 
     public void body() {
-        if (this.getBody() == null) {
+        if (this.getBody() == null || this.getBody().isEmpty()) {
             return;
         }
         if (this.getContentType().contains("application/json")) {
@@ -176,20 +190,25 @@ public class HttpRequest {
         }
         if (this.getContentType().contains("application/x-www-form-urlencoded")) {
             List<NameValuePair> nameValuePairs = new ArrayList<>();
-            if (!this.getBody().isEmpty()) {
-                Set<String> keySet = this.getBody().keySet();
-                for (String s : keySet) {
-                    String value = this.getBody().get(s);
-                    nameValuePairs.add(new BasicNameValuePair(s, value));
-                }
+            Set<String> keySet = this.getBody().keySet();
+            for (String s : keySet) {
+                String value = this.getBody().get(s);
+                nameValuePairs.add(new BasicNameValuePair(s, value));
             }
             HttpEntity entity = null;
-            try {
-                entity = new UrlEncodedFormEntity(nameValuePairs);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            entity = new UrlEncodedFormEntity(nameValuePairs);
             request.body(entity);
+        }
+        if (this.getContentType().contains("multipart/form-data")) {
+            MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+            this.getBody().forEach((k, v) -> {
+                if (k.equals("file")) {
+                    multipartEntityBuilder.addBinaryBody("file", new File(v));
+                } else {
+                    multipartEntityBuilder.addTextBody(k, v);
+                }
+            });
+            request.body(multipartEntityBuilder.build());
         }
     }
 
@@ -216,20 +235,17 @@ public class HttpRequest {
         String response = "";
         LocalDateTime startTime = LocalDateTime.now();
         try {
-            HttpResponse httpResponse = request.execute().returnResponse();
-            StatusLine statusLine = httpResponse.getStatusLine();
-            setHttpStatus(statusLine.getStatusCode());
-
             // TODO 响应中无法保留数字类型
-            response = new ContentResponseHandler()
-                    .handleResponse(httpResponse)
+            response = executor.execute(
+                            request.useExpectContinue()
+                                    .version(HttpVersion.HTTP_1_1)
+                    ).returnContent()
                     .asString(StandardCharsets.UTF_8);
-            setResponse(response);
 
             // System.out.println("Time Interval in Milliseconds: " + milliseconds + " ms");
             // log.info("Time Interval in Milliseconds: {} ms", milliseconds);
         } catch (IOException e) {
-            // e.printStackTrace();
+            e.printStackTrace();
             this.setReason(e.getMessage());
         } finally {
             LocalDateTime endTime = LocalDateTime.now();

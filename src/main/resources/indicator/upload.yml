@@ -1,0 +1,18 @@
+title: 测试环境面签流程-实施端
+vars:
+steps:
+  - title: /file/upload
+    protocol: http
+    request:
+      method: POST
+      url: http://operation-test.hrfax.example/api/file/upload
+      header:
+        Content-Type: multipart/form-data
+      body:
+        orderNo: 1699594212906
+        fileName: Screenshot_20230616_101915.jpg
+        orgType: d
+        file: "C:/Users/99493/Downloads/Screenshot_20230616_110331.jpg"
+    expect:
+      code: 200
+      msg: "成功"

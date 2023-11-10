@@ -1,0 +1,17 @@
+title: 测试环境面签流程-实施端
+vars:
+steps:
+  - title: /api/indicators/execute
+    protocol: http
+    request:
+      method: POST
+      url: http://w5040-indicators.hrfax.example/api/indicators/execute
+      header:
+        Content-Type: application/json; charset=UTF-8
+      body:
+        planCode: ZJBOC_RiskPlanForCarInstallmentProcess
+        parameters:
+          orderNo: vx01804000001055902218831536128
+    expect:
+      code: 200
+      msg: true
