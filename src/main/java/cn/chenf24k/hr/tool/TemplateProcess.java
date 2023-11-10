@@ -1,6 +1,5 @@
 package cn.chenf24k.hr.tool;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,7 @@ public final class TemplateProcess {
      * 模板字符串提取
      *
      * @param targetContent 操作的字符串
-     * @return 提取出的字符串
+     * @return 提取出的字符串 List<String>
      */
     public static List<String> extractAllTemplate(String targetContent) {
         List<String> strings = new LinkedList<>();
@@ -49,6 +48,12 @@ public final class TemplateProcess {
         return strings;
     }
 
+    /**
+     * 模板字符串提取
+     *
+     * @param targetContent 操作的字符串
+     * @return 提取出的字符串 String
+     */
     public static String extractTemplate(String targetContent) {
         String string = null;
         Matcher m = matcher(targetContent);
@@ -59,7 +64,12 @@ public final class TemplateProcess {
         return string;
     }
 
-
+    /**
+     * 判断字符串是否为模板字符串
+     *
+     * @param targetContent 操作的字符串
+     * @return boolean
+     */
     public static boolean isTemplate(String targetContent) {
         return matcher(targetContent).find();
     }
