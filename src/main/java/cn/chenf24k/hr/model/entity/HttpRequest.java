@@ -8,27 +8,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ognl.Ognl;
 import ognl.OgnlException;
-//import org.apache.http.*;
-//import org.apache.http.client.entity.UrlEncodedFormEntity;
-//import org.apache.http.client.fluent.ContentResponseHandler;
-//import org.apache.http.client.fluent.Request;
-//import org.apache.http.client.utils.URIUtils;
-//import org.apache.http.entity.ContentType;
-//import org.apache.http.message.BasicHeader;
-//import org.apache.http.message.BasicNameValuePair;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
-import org.apache.hc.client5.http.fluent.ContentResponseHandler;
 import org.apache.hc.client5.http.fluent.Executor;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.apache.hc.core5.http.message.StatusLine;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -218,7 +207,10 @@ public class HttpRequest {
         requestInfo.put("method", this.getMethod());
         requestInfo.put("header", this.getHeader());
         requestInfo.put("body", this.getBody());
-        // System.out.println("request: \r\n" + JsonUtil.pretty(JsonUtil.toJsonString(requestInfo)));
+        //if (GlobalConfig.getInstance().isDebug()) {
+        //System.out.println("request: \r\n" + JsonUtil.pretty(JsonUtil.toJsonString(requestInfo)));
+        //}
+
     }
 
     public void printResponseInfo() {
@@ -227,7 +219,9 @@ public class HttpRequest {
         responseInfo.put("httpCode", this.getHttpStatus());
         responseInfo.put("responseText", this.getResponse());
         responseInfo.put("reason", this.getReason());
+        // if (GlobalConfig.getInstance().isDebug()) {
         // System.out.println("response: \r\n" + JsonUtil.pretty(JsonUtil.toJsonString(responseInfo)));
+        // }
     }
 
     public String execute() {

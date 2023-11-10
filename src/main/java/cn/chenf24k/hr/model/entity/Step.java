@@ -5,7 +5,6 @@ import cn.chenf24k.hr.model.enums.PROTOCOL;
 import cn.chenf24k.hr.tool.JsonUtil;
 import cn.chenf24k.hr.tool.PrintUtil;
 import cn.chenf24k.hr.tool.TemplateProcess;
-import cn.hutool.core.lang.Assert;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ognl.Ognl;
@@ -25,9 +24,7 @@ public class Step {
 
     // 当前步骤内的上下文
     private StepContext stepContext = new StepContext();
-    private final List<Result> results = new ArrayList<>();
-
-    private final String[] relationalOperator = new String[]{"<", ">", "==", ">=", "<=", "!="};
+    private final List<Result> results = new LinkedList<>();
 
     public void run() {
         System.out.println("====>  " + this.getTitle());
@@ -160,7 +157,7 @@ public class Step {
 
     @Data
     @NoArgsConstructor
-    private static class StepContext {
+    private static final class StepContext {
         private Object response;
         private Object vars;
     }

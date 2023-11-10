@@ -1,7 +1,6 @@
 package cn.chenf24k.hr.model.entity;
 
 import cn.chenf24k.hr.context.GlobalContext;
-import cn.chenf24k.hr.ognl.DefaultMemberAccess;
 import cn.chenf24k.hr.tool.TemplateProcess;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -59,4 +58,5 @@ public class YamlObject implements Serializable {
         for (Step step : this.getSteps())
             step.run();
     }
+
 }
