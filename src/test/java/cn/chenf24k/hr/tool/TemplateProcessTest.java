@@ -12,7 +12,7 @@ import java.util.Map;
 public class TemplateProcessTest {
 
     @Test
-    public void testProcess() {
+    public void testProcessTemplate() {
         final Map<String, String> varsMap = new HashMap<>();
         varsMap.put("weight", "100");
         varsMap.put("varieties", "fuji");
@@ -23,7 +23,7 @@ public class TemplateProcessTest {
     }
 
     @Test
-    public void textExtract() {
+    public void testExtractAllTemplate() {
         String value = "{{a}}-{{b}}-{{c}}";
         List<String> extracted = TemplateProcess.extractAllTemplate(value);
         Assert.assertArrayEquals(new String[]{"a", "b", "c"}, extracted.toArray());

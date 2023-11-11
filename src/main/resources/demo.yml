@@ -1,4 +1,6 @@
 title: demo test
+vars:
+  name: hhhhhh
 steps:
   - title: create
     protocol: http
@@ -11,11 +13,32 @@ steps:
       body:
         id: 1
         name: xiaotiantian
-    #        guoxian:
-    #          name: xiaoxian
-    #          age: 18
+        guoxian:
+          name: '{{vars.name}}'
+          age: 18
     bind:
       vars:
-        id: '{{response.id}}'
+        id: '{{response.data.id}}'
+        size: 1
+        age: '{{response.data.guoxian.age}}'
     expect:
       code: 200
+      data:
+        guoxian:
+          age: '{{ response.data.guoxian.age > 15 && response.data.guoxian.age <= 18 }}'
+  - title: create3
+    protocol: http
+    request:
+      method: POST
+      url: 'http://127.0.0.1:8080/api/create3'
+      header:
+        Content-Type: application/x-www-form-urlencoded
+      body:
+        id: 1
+        name: xiaotiantian
+    bind:
+      vars:
+        id: '{{response.data.id}}'
+    expect:
+      code: 200
+

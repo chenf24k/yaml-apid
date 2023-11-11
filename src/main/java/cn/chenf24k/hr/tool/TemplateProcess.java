@@ -32,29 +32,6 @@ public final class TemplateProcess {
     }
 
     /**
-     * 替换模板字符串
-     *
-     * @param targetContent 操作的字符串
-     * @param params        变量集合
-     * @return 替换后的字符串
-     */
-//    public static String processTemplate2(String targetContent, Map<String, Object> params) {
-//        StringBuffer sb = new StringBuffer();
-//        Matcher m = matcher(targetContent);
-//        while (m.find()) {
-//            String param = m.group();
-//            Object value = params.get(param.substring(2, param.length() - 2));
-//            if (value instanceof Object){
-//                processTemplate2()
-//            }
-//            // m.appendReplacement(sb, value == null ? "" : value);
-//        }
-//        m.appendTail(sb);
-//        return sb.toString();
-//    }
-
-
-    /**
      * 提取所有模板字符串
      *
      * @param targetContent 操作的字符串

@@ -30,13 +30,12 @@ public class HttpRequest {
     private METHOD method;
     private String url;
     private Map<String, String> header;
-    private Map<String, String> body;
+    private LinkedHashMap<String, Object> body;
     private Map<String, String> query;
 
     private String contentType = "application/json";
     private Request request;
 
-    private CustomResponse customResponse;
     final Executor executor = Executor.newInstance();
 
     public CustomResponse request() {
@@ -48,59 +47,9 @@ public class HttpRequest {
         return execute();
     }
 
-    public void handleHeaders() {
-        request.addHeader("user-agent", "YAML_APID");
-        if (this.getHeader() == null || this.getHeader().isEmpty()) {
-            return;
-        }
-        List<Header> headers = new ArrayList<>();
-        this.getHeader().forEach((key, value) -> {
-            Header basicHeader = new BasicHeader(key, value);
-            if (key.trim().toLowerCase().contains("content-type"))
-                this.setContentType(value.trim().toLowerCase());
-            headers.add(basicHeader);
-        });
-        headers.removeIf(dataHeader -> dataHeader.getValue().contains("multipart/form-data"));
-        request.setHeaders(headers.toArray(new Header[0]));
-    }
-
-    public void handleQueryParam() {
-        if (this.getQuery() == null || this.getQuery().isEmpty()) {
-            return;
-        }
-        StringBuilder queryParams = new StringBuilder();
-        this.getQuery().forEach((key, value) -> {
-            queryParams.append("&").append(key).append("=").append(value);
-        });
-
-        String paramsString = queryParams.toString();
-        paramsString = paramsString.replaceFirst("&", "");
-
-        // 如果url的最后一位刚好是?，可以直接添加参数
-        if (this.getUrl().lastIndexOf("?") > -1)
-            this.setUrl(this.getUrl() + paramsString);
-        else
-            this.setUrl(this.getUrl() + "?" + paramsString);
-    }
-
-    public void handleHttpMethod() {
-        switch (this.getMethod()) {
-            case GET:
-                request = Request.get(this.getUrl());
-                break;
-            case POST:
-                request = Request.post(this.getUrl());
-                break;
-            case PUT:
-                request = Request.put(this.getUrl());
-                break;
-            case DELETE:
-                request = Request.delete(this.getUrl());
-            default:
-                throw new RuntimeException("This method is not supported: " + this.getMethod());
-        }
-    }
-
+    /**
+     * 替换url、query、header、body中的模板变量
+     */
     public void preProcessVars() {
         GlobalContext globalContext = GlobalContext.getInstance();
         Map<String, String> temp = new HashMap<>();
@@ -116,6 +65,7 @@ public class HttpRequest {
         if (this.getBody() != null) // body 处理
             extracted.addAll(TemplateProcess.extractAllTemplate(this.getBody().values().toString()));
 
+        // 执行运算
         for (String template : extracted) {
             Object value = null;
             try {
@@ -147,13 +97,61 @@ public class HttpRequest {
         }
 
         // body
-        if (this.getBody() != null) {
-            this.getBody().forEach((key, value) -> {
-                String newValue = TemplateProcess.processTemplate(value, temp);
-                this.getBody().replace(key, newValue);
-            });
-        }
+        LinkedHashMap<String, Object> handled = handleBodyVars(this.getBody(), temp);
+        this.setBody(handled);
+    }
 
+    public void handleHeaders() {
+        request.addHeader("user-agent", "YAML_APID");
+        if (this.getHeader() == null || this.getHeader().isEmpty()) {
+            return;
+        }
+        List<Header> headers = new ArrayList<>();
+        this.getHeader().forEach((key, value) -> {
+            Header basicHeader = new BasicHeader(key, value);
+            if (key.trim().toLowerCase().contains("content-type"))
+                this.setContentType(value.trim().toLowerCase());
+            headers.add(basicHeader);
+        });
+        headers.removeIf(dataHeader -> dataHeader.getValue().contains("multipart/form-data"));
+        request.setHeaders(headers.toArray(new Header[0]));
+    }
+
+    public void handleQueryParam() {
+        if (this.getQuery() == null || this.getQuery().isEmpty()) {
+            return;
+        }
+        StringBuilder queryParams = new StringBuilder();
+        this.getQuery().forEach(
+                (key, value) -> queryParams.append("&").append(key).append("=").append(value)
+        );
+
+        String paramsString = queryParams.toString();
+        paramsString = paramsString.replaceFirst("&", "");
+
+        // 如果url的最后一位刚好是?，可以直接添加参数
+        if (this.getUrl().lastIndexOf("?") > -1)
+            this.setUrl(this.getUrl() + paramsString);
+        else
+            this.setUrl(this.getUrl() + "?" + paramsString);
+    }
+
+    public void handleHttpMethod() {
+        switch (this.getMethod()) {
+            case GET:
+                request = Request.get(this.getUrl());
+                break;
+            case POST:
+                request = Request.post(this.getUrl());
+                break;
+            case PUT:
+                request = Request.put(this.getUrl());
+                break;
+            case DELETE:
+                request = Request.delete(this.getUrl());
+            default:
+                throw new RuntimeException("This method is not supported: " + this.getMethod());
+        }
     }
 
     public void handleBody() {
@@ -166,21 +164,24 @@ public class HttpRequest {
         }
         if (this.getContentType().contains("application/x-www-form-urlencoded")) {
             List<NameValuePair> nameValuePairs = new ArrayList<>();
-            for (Map.Entry<String, String> entry : this.getBody().entrySet()) {
-                nameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+            if (!this.getBody().isEmpty()) {
+                Set<String> keySet = this.getBody().keySet();
+                for (String s : keySet) {
+                    Object value = this.getBody().get(s);
+                    nameValuePairs.add(new BasicNameValuePair(s, String.valueOf(value)));
+                }
             }
-            HttpEntity entity;
-            entity = new UrlEncodedFormEntity(nameValuePairs);
+            HttpEntity entity = new UrlEncodedFormEntity(nameValuePairs);
             request.body(entity);
         }
         if (this.getContentType().contains("multipart/form-data")) {
             final MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-            for (Map.Entry<String, String> entry : this.getBody().entrySet()) {
+            for (Map.Entry<String, Object> entry : this.getBody().entrySet()) {
                 if (entry.getKey().equalsIgnoreCase("file")) {
                     // TODO 考虑如果上传为其它关键字如何处理
-                    multipartEntityBuilder.addBinaryBody("file", new File(entry.getValue()));
+                    multipartEntityBuilder.addBinaryBody("file", new File((String) entry.getValue()));
                 } else {
-                    multipartEntityBuilder.addTextBody(entry.getKey(), entry.getValue());
+                    multipartEntityBuilder.addTextBody(entry.getKey(), (String) entry.getValue());
                 }
             }
             request.body(multipartEntityBuilder.build());
@@ -197,6 +198,9 @@ public class HttpRequest {
         log.info("Http Status: {}", response.getStatus());
         log.info("Duration: {} ms", response.getDuration());
         log.info("Response: {}", response.getResponse());
+        if (response.getReason() != null) {
+            log.info("fail reason: {}", response.getReason());
+        }
     }
 
     public CustomResponse execute() {
@@ -231,6 +235,34 @@ public class HttpRequest {
         }
         printResponseInfo(response);
         return response;
+    }
+
+    /**
+     * 递归处理body中的变量
+     *
+     * @param body   请求的载荷
+     * @param params 变量集合
+     * @return map
+     */
+    private LinkedHashMap<String, Object> handleBodyVars(Map<String, Object> body, Map<String, String> params) {
+        LinkedHashMap<String, Object> newBodyMap = new LinkedHashMap<>();
+        if (body != null && !body.isEmpty()) {
+            body.forEach((key, value) -> {
+                if (value instanceof Map) {
+                    // newBodyMap.putAll(this.handleBodyVars((LinkedHashMap<String, Object>) value, params));
+                    newBodyMap.put(key, this.handleBodyVars((LinkedHashMap<String, Object>) value, params));
+                } else {
+                    boolean isTemplate = TemplateProcess.isTemplate(String.valueOf(value));
+                    if (isTemplate) {
+                        String newValue = TemplateProcess.processTemplate(value.toString(), params);
+                        newBodyMap.put(key, newValue);
+                    } else {
+                        newBodyMap.put(key, value);
+                    }
+                }
+            });
+        }
+        return newBodyMap;
     }
 
     /**

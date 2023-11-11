@@ -8,5 +8,5 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 public class Bind {
-    private Map<String, String> vars;
+    private Map<String, Object> vars;
 }

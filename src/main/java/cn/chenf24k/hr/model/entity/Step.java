@@ -50,16 +50,27 @@ public class Step {
      */
     private void bindVars() {
         if (this.bind != null && !this.bind.getVars().isEmpty()) {
-            Map<String, String> bindVars = this.bind.getVars();
+            Map<String, Object> bindVars = this.bind.getVars();
             bindVars.forEach((varKey, varValue) -> {
-                String template = bindVars.get(varKey);
-                String expression = TemplateProcess.extractTemplate(template);
-                try {
-                    String result = (String) Ognl.getValue(expression, this.stepContext);
-                    bindVars.put(varKey, result);
-                } catch (OgnlException e) {
-                   // e.printStackTrace();
+                Object object = bindVars.get(varKey);
+                if (object instanceof String) {
+                    String template = String.valueOf(object);
+                    boolean isTemplate = TemplateProcess.isTemplate(template);
+                    if (isTemplate) {
+                        String expression = TemplateProcess.extractTemplate(template);
+                        try {
+                            Object value = Ognl.getValue(expression, this.stepContext);
+                            bindVars.put(varKey, value);
+                        } catch (OgnlException e) {
+                            // e.printStackTrace();
+                        }
+                    } else {
+                        bindVars.put(varKey, varValue);
+                    }
+                } else {
+                    bindVars.put(varKey, varValue);
                 }
+
             });
             GlobalContext.getInstance().putAll(bindVars);
         }

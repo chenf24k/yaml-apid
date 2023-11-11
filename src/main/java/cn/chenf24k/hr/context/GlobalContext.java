@@ -1,5 +1,6 @@
 package cn.chenf24k.hr.context;
 
+import cn.chenf24k.hr.remake.CustomMap;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,16 +13,16 @@ import java.util.Map;
 @Slf4j
 public final class GlobalContext {
 
-    private static Context vars;
+    private static CustomMap vars;
 
     static {
-        vars = new Context();
+        vars = new CustomMap();
     }
 
     private GlobalContext() {
     }
 
-    public Context getVars() {
+    public CustomMap getVars() {
         return vars;
     }
 
