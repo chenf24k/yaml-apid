@@ -1,9 +1,6 @@
 package cn.chenf24k.hr.tool;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +30,13 @@ public class JsonUtil<T> {
      */
     public static <T> T toObject(String jsonStr, Class<T> clazz) {
         Gson gson = new Gson();
-        return gson.fromJson(jsonStr, clazz);
+        T t = null;
+        try {
+             t = gson.fromJson(jsonStr, clazz);
+        } catch (JsonSyntaxException e){
+            // e.printStackTrace();
+        }
+        return t;
     }
 
     /**

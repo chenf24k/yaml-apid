@@ -1,0 +1,21 @@
+title: demo test
+steps:
+  - title: create
+    protocol: http
+    request:
+      method: POST
+      url: 'http://127.0.0.1:8080/api/create'
+      header:
+        Content-Type: application/json
+      # TODO 支持嵌套对象发送请求
+      body:
+        id: 1
+        name: xiaotiantian
+    #        guoxian:
+    #          name: xiaoxian
+    #          age: 18
+    bind:
+      vars:
+        id: '{{response.id}}'
+    expect:
+      code: 200

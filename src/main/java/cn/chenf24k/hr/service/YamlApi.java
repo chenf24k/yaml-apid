@@ -1,7 +1,6 @@
 package cn.chenf24k.hr.service;
 
 import cn.chenf24k.hr.model.entity.YamlObject;
-import lombok.Data;
 
 import java.util.LinkedList;
 import java.util.List;

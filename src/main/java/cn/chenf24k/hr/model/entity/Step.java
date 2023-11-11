@@ -7,6 +7,7 @@ import cn.chenf24k.hr.tool.PrintUtil;
 import cn.chenf24k.hr.tool.TemplateProcess;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ognl.Ognl;
 import ognl.OgnlException;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
+@Slf4j
 public class Step {
     private String title;
     private PROTOCOL protocol;
@@ -27,14 +29,15 @@ public class Step {
     private final List<Result> results = new LinkedList<>();
 
     public void run() {
-        System.out.println("====>  " + this.getTitle());
-        String response = this.getRequest().request();
-        Object object = JsonUtil.toObject(response, Object.class);
+        log.info("Step: {}", this.getTitle());
+        CustomResponse requested = this.getRequest().request();
+        Object object = JsonUtil.toObject(requested.getResponse(), LinkedHashMap.class);
+        // 将响应塞入 stepContext 用于断言比较
         this.stepContext.setResponse(object);
         this.bindVars();
 
         Map<String, String> handled = this.handleToUnidimensional("", this.getExpect());
-        // 将全局变量塞入 stepContext
+        // 将全局变量塞入 stepContext 用于断言比较
         this.stepContext.setVars(GlobalContext.getInstance().getVars());
 
         Map<String, Object> stringObjectMap = this.handleExpectExpressions(handled);
@@ -55,19 +58,19 @@ public class Step {
                     String result = (String) Ognl.getValue(expression, this.stepContext);
                     bindVars.put(varKey, result);
                 } catch (OgnlException e) {
-                    e.printStackTrace();
+                   // e.printStackTrace();
                 }
             });
-            GlobalContext.getInstance().getVars().putAll(bindVars);
+            GlobalContext.getInstance().putAll(bindVars);
         }
     }
 
     /**
-     * 递归处理期望keys，返回一个单线map
+     * 递归 将期望keys，返回一个平面的map集合
      *
-     * @param root
-     * @param expect
-     * @return
+     * @param root   期望值的key表达式
+     * @param expect 期望值map集合
+     * @return Map<String, String>
      */
     private Map<String, String> handleToUnidimensional(String root, Map<String, Object> expect) {
         Map<String, String> expectMaps = new LinkedHashMap<>();
@@ -87,6 +90,12 @@ public class Step {
         return expectMaps;
     }
 
+    /**
+     * 期望的集合变量求值
+     *
+     * @param handled 已经处理为平面的集合
+     * @return Map<String, Object>
+     */
     private Map<String, Object> handleExpectExpressions(Map<String, String> handled) {
         Map<String, Object> actualWithExpect = new LinkedHashMap<>();
         if (handled != null && !handled.isEmpty()) {
@@ -109,6 +118,11 @@ public class Step {
         return actualWithExpect;
     }
 
+    /**
+     * 断言处理
+     *
+     * @param handled 已经求值的集合
+     */
     private void assertFunc(Map<String, Object> handled) {
         if (handled != null && !handled.isEmpty()) {
             handled.forEach((key, expectEl) -> {
@@ -145,6 +159,9 @@ public class Step {
         }
     }
 
+    /**
+     * 打印结果
+     */
     private void outputResult() {
         List<Result> collect = results.stream().filter(Result::isSuccess)
                 .collect(Collectors.toList());
@@ -155,6 +172,9 @@ public class Step {
         PrintUtil.printResult(results);
     }
 
+    /**
+     * 上下文，仅在当前步骤中生效
+     */
     @Data
     @NoArgsConstructor
     private static final class StepContext {

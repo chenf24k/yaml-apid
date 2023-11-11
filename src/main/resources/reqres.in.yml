@@ -1,4 +1,5 @@
 title: user system test
+debug: true
 vars:
   name: 2
   job: tester
@@ -32,6 +33,7 @@ steps:
       url: 'https://reqres.in/api/users'
       query:
         page: '{{vars.page}}'
+        size: '10'
     expect:
       page: '{{vars.page}}'
       data: "{{response.data.size() > 3}}"

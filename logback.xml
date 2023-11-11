@@ -1,7 +1,0 @@
-<configuration>
-    <!-- 其他配置 -->
-
-    <logger name="com.jayway.jsonpath" level="INFO" />
-
-    <!-- 其他配置 -->
-</configuration>

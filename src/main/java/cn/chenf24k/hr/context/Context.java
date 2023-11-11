@@ -4,10 +4,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
-import java.util.Map;
 
-@EqualsAndHashCode(callSuper = true)
+/**
+ * 上下文对象
+ */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class Context extends HashMap<String, Object> {
 
 }

@@ -4,6 +4,7 @@ import cn.chenf24k.hr.context.GlobalContext;
 import cn.chenf24k.hr.tool.TemplateProcess;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ognl.*;
 import org.yaml.snakeyaml.Yaml;
 
@@ -13,10 +14,14 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
+@Slf4j
 public class YamlObject implements Serializable {
     private String title;
     private Map<String, String> vars;
     private Step[] steps;
+
+    // 是否开启调试
+    private boolean debug = false;
 
     private static final Yaml yaml = new Yaml();
 
@@ -25,6 +30,7 @@ public class YamlObject implements Serializable {
         this.title = yamlObject.getTitle();
         this.vars = yamlObject.getVars();
         this.steps = yamlObject.getSteps();
+        this.debug = yamlObject.isDebug();
         preHandle();
     }
 
@@ -32,6 +38,7 @@ public class YamlObject implements Serializable {
      * 处理全部变量
      */
     public void preHandle() {
+        // 1. 处理全局变量
         Map<String, Object> globalVars = new LinkedHashMap<>();
         if (this.getVars() != null && !this.getVars().isEmpty())
             this.getVars().forEach((varName, varValue) -> {
@@ -49,12 +56,11 @@ public class YamlObject implements Serializable {
                 }
                 globalVars.put(varName, handleValue);
             });
-
-        GlobalContext.getInstance().getVars().putAll(globalVars);
+        GlobalContext.getInstance().putAll(globalVars);
     }
 
     public void play() {
-        System.out.println("[------   " + this.getTitle() + "   ------]");
+        log.info("Scene: {}", this.getTitle());
         for (Step step : this.getSteps())
             step.run();
     }
