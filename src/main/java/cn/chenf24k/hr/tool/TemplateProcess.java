@@ -74,6 +74,17 @@ public final class TemplateProcess {
         return matcher(targetContent).find();
     }
 
+    /**
+     * 判断字符串是否为模板字符串
+     *
+     * @param targetObject 操作的对象
+     * @return boolean
+     */
+    public static boolean isTemplate(Object targetObject) {
+        String targetContent = String.valueOf(targetObject);
+        return isTemplate(targetContent);
+    }
+
     private static Matcher matcher(String targetContent) {
         return Pattern.compile("\\{\\{(.+?)\\}\\}").matcher(targetContent);
     }

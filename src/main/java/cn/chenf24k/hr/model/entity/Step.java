@@ -2,6 +2,7 @@ package cn.chenf24k.hr.model.entity;
 
 import cn.chenf24k.hr.context.GlobalContext;
 import cn.chenf24k.hr.model.enums.PROTOCOL;
+import cn.chenf24k.hr.tool.ExpressionProcess;
 import cn.chenf24k.hr.tool.JsonUtil;
 import cn.chenf24k.hr.tool.PrintUtil;
 import cn.chenf24k.hr.tool.TemplateProcess;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import ognl.Ognl;
 import ognl.OgnlException;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,7 +24,7 @@ public class Step {
     private PROTOCOL protocol;
     private HttpRequest request;
     private Bind bind;
-    private Map<String, Object> expect;
+    private LinkedHashMap<String, Object> expect;
 
     // 当前步骤内的上下文
     private StepContext stepContext = new StepContext();
@@ -36,11 +38,11 @@ public class Step {
         this.stepContext.setResponse(object);
         this.bindVars();
 
-        Map<String, String> handled = this.handleToUnidimensional("", this.getExpect());
+        Map<String, Object> handled = ExpressionProcess.handleToUnidimensional("", this.getExpect());
         // 将全局变量塞入 stepContext 用于断言比较
         this.stepContext.setVars(GlobalContext.getInstance().getVars());
 
-        Map<String, Object> stringObjectMap = this.handleExpectExpressions(handled);
+        Map<String, Object> stringObjectMap = ExpressionProcess.handleExpectExpressions(handled, this.stepContext);
         this.assertFunc(stringObjectMap);
         outputResult();
     }
@@ -77,59 +79,6 @@ public class Step {
     }
 
     /**
-     * 递归 将期望keys，返回一个平面的map集合
-     *
-     * @param root   期望值的key表达式
-     * @param expect 期望值map集合
-     * @return Map<String, String>
-     */
-    private Map<String, String> handleToUnidimensional(String root, Map<String, Object> expect) {
-        Map<String, String> expectMaps = new LinkedHashMap<>();
-        if (expect != null && !expect.isEmpty())
-            expect.forEach((key, template) -> {
-                String rootString = Objects.equals(root, "") ? key : root + "." + key;
-                if (template instanceof Map)
-                    expectMaps.putAll(this.handleToUnidimensional(rootString, (Map<String, Object>) template));
-                else {
-                    expectMaps.put(
-                            rootString
-                            ,
-                            Objects.toString(template)
-                    );
-                }
-            });
-        return expectMaps;
-    }
-
-    /**
-     * 期望的集合变量求值
-     *
-     * @param handled 已经处理为平面的集合
-     * @return Map<String, Object>
-     */
-    private Map<String, Object> handleExpectExpressions(Map<String, String> handled) {
-        Map<String, Object> actualWithExpect = new LinkedHashMap<>();
-        if (handled != null && !handled.isEmpty()) {
-            handled.forEach((key, expectEl) -> {
-                boolean isTemplate = TemplateProcess.isTemplate(expectEl);
-                Object expectValue = null;
-                if (isTemplate) {
-                    try {
-                        String extracted = TemplateProcess.extractTemplate(expectEl);
-                        expectValue = Ognl.getValue(extracted, this.stepContext);
-                    } catch (OgnlException ignored) {
-
-                    }
-                } else {
-                    expectValue = expectEl;
-                }
-                actualWithExpect.put(key, expectValue);
-            });
-        }
-        return actualWithExpect;
-    }
-
-    /**
      * 断言处理
      *
      * @param handled 已经求值的集合
@@ -146,14 +95,19 @@ public class Step {
                     // e.printStackTrace();
                 }
 
-                if (actualValue != null) {
-                    String type = actualValue.getClass().getName();
-                    if (type.contains("Double")) {
-                        actualValue = String.valueOf(((Double) actualValue).intValue());
+                Result result;
+                if (actualValue != null && expectEl != null) {
+                    if (actualValue instanceof Number && expectEl instanceof Number) {
+                        BigDecimal a = BigDecimal.valueOf((Double) actualValue);
+                        BigDecimal e = BigDecimal.valueOf(Double.parseDouble(String.valueOf(expectEl)));
+
+                        boolean b = a.compareTo(e) == 0;
+                        result = new Result(b, key, e.doubleValue(), e.doubleValue());
+                        results.add(result);
+                        return;
                     }
                 }
 
-                Result result;
                 if (expectEl instanceof Boolean) {
                     result = new Result((Boolean) expectEl, key, expectEl, actualValue);
                     results.add(result);
@@ -188,7 +142,7 @@ public class Step {
      */
     @Data
     @NoArgsConstructor
-    private static final class StepContext {
+    public static final class StepContext {
         private Object response;
         private Object vars;
     }

@@ -23,7 +23,9 @@ steps:
         age: '{{response.data.guoxian.age}}'
     expect:
       code: 200
+      message: success
       data:
+        id: 1
         guoxian:
           age: '{{ response.data.guoxian.age > 15 && response.data.guoxian.age <= 18 }}'
   - title: create3
