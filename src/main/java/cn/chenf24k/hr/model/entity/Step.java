@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Step {
     private String title;
-    private PROTOCOL protocol;
+    private PROTOCOL protocol = PROTOCOL.http;
     private HttpRequest request;
     private Bind bind;
     private LinkedHashMap<String, Object> expect;
@@ -33,6 +33,9 @@ public class Step {
     public void run() {
         log.info("Step: {}", this.getTitle());
         CustomResponse requested = this.getRequest().request();
+        if (requested.getStatus() != 200) {
+            log.info("Request failed...");
+        }
         Object object = JsonUtil.toObject(requested.getResponse(), LinkedHashMap.class);
         // 将响应塞入 stepContext 用于断言比较
         this.stepContext.setResponse(object);

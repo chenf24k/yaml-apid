@@ -6,41 +6,22 @@ steps:
     protocol: http
     request:
       method: POST
-      url: 'http://127.0.0.1:8080/api/create'
+      url: 'http://127.0.0.1:8080/user/add'
       header:
         Content-Type: application/json
       # TODO 支持嵌套对象发送请求
       body:
-        id: 1
-        name: xiaotiantian
-        guoxian:
-          name: '{{vars.name}}'
-          age: 18
+        name: chenfeng
+        email: 994934179@qq.com
     bind:
       vars:
         id: '{{response.data.id}}'
-        size: 1
-        age: '{{response.data.guoxian.age}}'
     expect:
-      code: 200
-      message: success
-      data:
-        id: 1
-        guoxian:
-          age: '{{ response.data.guoxian.age > 15 && response.data.guoxian.age <= 18 }}'
-  - title: create3
-    protocol: http
+      name: chenfeng
+  - title: list
     request:
-      method: POST
-      url: 'http://127.0.0.1:8080/api/create3'
-      header:
-        Content-Type: application/x-www-form-urlencoded
-      body:
-        id: 1
-        name: xiaotiantian
-    bind:
-      vars:
-        id: '{{response.data.id}}'
+      method: GET
+      url: 'http://127.0.0.1:8080/user/all'
     expect:
-      code: 200
+      test1: '{{response.size()>1}}'
 
